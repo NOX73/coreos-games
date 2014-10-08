@@ -1,0 +1,21 @@
+[Unit]
+Description=Nginx configurator
+BindsTo=nginx.service
+
+[Service]
+Restart=always
+TimeoutStartSec=0
+EnvironmentFile=/etc/environment
+
+ExecStartPre=-/usr/bin/docker kill %p
+ExecStartPre=-/usr/bin/docker rm %p
+ExecStartPre=/usr/bin/docker pull dockerfile/nodejs
+ExecStartPre=sleep 3
+
+ExecStart=/bin/bash -c 'docker run --rm -t --net="host" --name %p -v /home/core/share/nginx-config-service:/tmp/nginx_config --volumes-from nginx dockerfile/nodejs /bin/bash -l -c "cd /tmp/ && npm i nginx_config/ && node node_modules/nginx-config-service/index.js "'
+
+ExecStop=-/usr/bin/bash -c "docker stop %p && docker wait %p"
+
+[X-Fleet]
+MachineOf=nginx.service
+

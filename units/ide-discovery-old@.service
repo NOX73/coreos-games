@@ -1,0 +1,11 @@
+[Unit]
+Description=HexletIDE Descovery Service
+BindsTo=ide@%i.service
+
+[Service]
+ExecStart=/bin/bash -c 'while true; do etcdctl set --ttl 60 /ide/ide_%i/port $(docker inspect --format="{{(index (index .NetworkSettings.Ports \\\"9000/tcp\\\") 0).HostPort}}" ide_%i) ; etcdctl set --ttl 60 /ide/ide_%i/ip $(ip addr | grep -o 10.133.246.[0-9]*); sleep 45; done;'
+ExecStop-=/bin/bash -c 'etcdctl rm /ide/ide_%i/ip; etcdctl rm /ide/ide_%i/port'
+
+[X-Fleet]
+MachineOf=ide@%i.service
+

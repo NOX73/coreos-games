@@ -1,0 +1,16 @@
+[Unit]
+Description=HexletIDE
+Requires=ide-discovery@%i.service
+Before=ide-discovery@%i.service
+
+[Service]
+EnvironmentFile=/etc/environment
+TimeoutStartSec=0
+Restart=no
+
+ExecStartPre=-/usr/bin/docker kill ide_%i
+ExecStartPre=-/usr/bin/docker rm ide_%i
+ExecStartPre=/usr/bin/docker pull alexeyfrank/test
+
+ExecStart=/usr/bin/docker run --rm -p ${COREOS_PRIVATE_IPV4}::9000 -p ${COREOS_PRIVATE_IPV4}::80 --name=ide_%i -t alexeyfrank/test /bin/bash -l -c gulp
+ExecStop=/usr/bin/bash -c "docker stop ide_%i && docker wait ide_%i"

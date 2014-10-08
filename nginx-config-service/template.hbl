@@ -1,0 +1,9 @@
+server {
+  listen 80 default_server;
+
+  {{#each ides}}
+  location {{url}}/ {
+    proxy_pass http://{{host}}/;
+  }
+  {{/each}}
+}

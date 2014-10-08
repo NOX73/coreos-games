@@ -1,0 +1,71 @@
+#cloud-config
+coreos:
+  etcd:
+    addr: $private_ipv4:4001
+    peer-addr: $private_ipv4:7001
+    discovery: https://discovery.etcd.io/209bb6359f9158d9e363bef3fc46ff24
+  fleet:
+    public-ip: $private_ipv4
+  units:
+  - name: ide-discovery@.service
+    content: |
+      [Unit]
+      Description=HexletIDE Descovery Service
+      BindsTo=ide@%i.service
+
+      [Service]
+      ExecStart=/bin/bash -c 'while true; do etcdctl set --ttl 60 /ide/ide_%i/port $(docker inspect --format="{{(index (index .NetworkSettings.Ports \\\"9000/tcp\\\") 0).HostPort}}" ide_%i) ; etcdctl set --ttl 60 /ide/ide_%i/ip $(ip addr | grep -o 172.17.8.1[0-9]*); sleep 45; done;'
+      ExecStop-=/bin/bash -c 'etcdctl rm /ide/ide_%i/ip; etcdctl rm /ide/ide_%i/port'
+
+      [X-Fleet]
+      MachineOf=ide@%i.service
+  units:
+  - name: ide@.service
+    content: |
+      [Unit]
+      Description=HexletIDE
+      Requires=ide-discovery@%i.service
+      Before=ide-discovery@%i.service
+
+      [Service]
+      TimeoutStartSec=0
+      Restart=no
+
+      ExecStartPre=-/usr/bin/docker kill %p_%i
+      ExecStartPre=-/usr/bin/docker rm %p_%i
+      ExecStartPre=/usr/bin/docker pull alexeyfrank/test
+
+      ExecStart=/usr/bin/docker run -P=true --name=%p_%i -t alexeyfrank/test /bin/bash -l -c gulp
+      ExecStop=/usr/bin/bash -c "docker stop %p_%i && docker wait %p_%i"
+
+
+  - name: etcd.service
+    command: start
+  - name: fleet.service
+    command: start
+  - name: fleet.socket
+    command: start
+    content: |
+      [Socket]
+      # Talk to the API over a Unix domain socket (default)
+      #ListenStream=/var/run/fleet.sock
+      # Talk to the API over an exposed port, uncomment to enable and choose a port
+      ListenStream=8088
+      Service=fleet.service
+
+      [Install]
+      WantedBy=sockets.target
+  - name: docker-tcp.socket
+    command: start
+    enable: true
+    content: |
+      [Unit]
+      Description=Docker Socket for the API
+
+      [Socket]
+      ListenStream=2375
+      Service=docker.service
+      BindIPv6Only=both
+
+      [Install]
+      WantedBy=sockets.target
