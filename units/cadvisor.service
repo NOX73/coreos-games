@@ -1,0 +1,17 @@
+[Unit]
+Description=Cadvisor
+
+[Service]
+TimeoutStartSec=0
+EnvironmentFile=/etc/environment
+
+ExecStartPre=-/usr/bin/docker kill %p
+ExecStartPre=-/usr/bin/docker rm %p
+ExecStartPre=/usr/bin/docker pull google/cadvisor:latest
+
+ExecStart=/usr/bin/docker run -v /:/rootfs:ro -v /var/run:/var/run:rw -v /sys:/sys:ro -v /var/lib/docker/:/var/lib/docker:ro -p ${COREOS_PUBLIC_IPV4}:8080:8080 --name=%p google/cadvisor:latest
+
+ExecStop=-/usr/bin/bash -c "docker stop %p && docker wait %p"
+
+[X-Fleet]
+MachineMetadata=role=entrypoint

@@ -15,3 +15,6 @@ ExecStartPre=/usr/bin/docker pull dockerfile/nginx
 ExecStart=/usr/bin/docker run --rm -t --name %p -p ${COREOS_PUBLIC_IPV4}:80:80 dockerfile/nginx
 
 ExecStop=-/usr/bin/bash -c "docker stop %p && docker wait %p"
+
+[X-Fleet]
+MachineMetadata=role=entrypoint
