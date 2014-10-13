@@ -5,7 +5,7 @@ BindsTo=ide@%i.service
 [Service]
 EnvironmentFile=/etc/environment
 ExecStart=/bin/bash -c 'while true; do etcdctl set --ttl 60 /ide/ide_%i/port/9000 $(docker port ide_%i 9000) ; etcdctl set --ttl 60 /ide/ide_%i/ip ${COREOS_PRIVATE_IPV4}; sleep 45; done;'
-ExecStop-=/bin/bash -c 'etcdctl rm /ide/ide_%i --recursive'
+ExecStop-=/bin/bash -c 'etcdctl rm /ide/ide_%i'
 
 [X-Fleet]
 MachineOf=ide@%i.service

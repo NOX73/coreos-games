@@ -46,7 +46,11 @@ function renderConfig (callback) {
         return undefined;
       }
 
-      return { url: node.key, host: port9000.value };
+      var url = node.key;
+
+      var idx = url.replace("/ide/ide_", "");
+
+      return { url: url, host: port9000.value, idx: idx };
     })
 
     var context = { ides: _.compact(ides), self_host: self_host };
@@ -72,7 +76,9 @@ function updateConfig(data) {
 }
 
 function onKeyChange(){
-  renderConfig(updateConfig);
+  setTimeout(function(){
+    renderConfig(updateConfig);
+  }, 1000);
 }
 
 onKeyChange();

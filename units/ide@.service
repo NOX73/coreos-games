@@ -12,5 +12,5 @@ ExecStartPre=-/usr/bin/docker kill ide_%i
 ExecStartPre=-/usr/bin/docker rm ide_%i
 ExecStartPre=/usr/bin/docker pull alexeyfrank/test
 
-ExecStart=/usr/bin/docker run --rm -p ${COREOS_PRIVATE_IPV4}::9000 -p ${COREOS_PRIVATE_IPV4}::80 --name=ide_%i -t alexeyfrank/test node bin/hexlet-ide.js -r . -p 9000
+ExecStart=/usr/bin/docker run --rm -p ${COREOS_PRIVATE_IPV4}::9000 -p ${COREOS_PRIVATE_IPV4}::80 --name=ide_%i -t alexeyfrank/test node bin/hexlet-ide.js -r ./test/fixtures -p 9000
 ExecStop=-/usr/bin/bash -c "docker stop ide_%i && docker wait ide_%i"
